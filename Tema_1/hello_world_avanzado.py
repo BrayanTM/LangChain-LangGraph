@@ -15,8 +15,11 @@ plantilla = PromptTemplate(
     template="Saluda al usuario con su nombre.\nNombre del usuario: {nombre}\nAsistente: ",
 )
 
-chain = plantilla | llm | StrOutputParser()
+
+# chain = plantilla | llm | StrOutputParser()
+chain = plantilla | llm
 
 
-resultado = chain.invoke("Brayan")
-print("Respuesta del modelo: ", resultado)
+resultado = chain.invoke({"nombre": "Brayan"})
+# print(resultado)
+print(resultado.content)
