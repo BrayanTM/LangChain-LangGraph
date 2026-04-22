@@ -14,3 +14,8 @@ st.markdown(
 
 
 chat_model = ChatOpenAI(model="gpt-5.4-mini", temperature=0.5)
+
+
+# Inicializar el historial de mensajes
+if "mensajes" not in st.session_state:
+    st.session_state.mensajes = []
