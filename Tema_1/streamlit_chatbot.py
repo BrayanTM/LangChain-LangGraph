@@ -80,7 +80,8 @@ if pregunta:
             for chunk in chain.stream(
                 {"mensaje": pregunta, "historial": st.session_state.mensajes}
             ):
-                full_response += chunk.content
+                if isinstance(chunk.content, str):
+                    full_response += chunk.content
                 response_placeholder.markdown(full_response + "|")
 
             response_placeholder.markdown(full_response)
