@@ -1,6 +1,7 @@
 import dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.prompts import PromptTemplate
 import streamlit as st
 
 dotenv.load_dotenv()
@@ -13,7 +14,24 @@ st.markdown(
 )
 
 
-chat_model = ChatOpenAI(model="gpt-5.4-mini", temperature=0.5)
+with st.sidebar:
+    st.header("Configuración")
+    temperature = st.slider("Temperatura", 0.0, 1.0, 0.5, 0.1)
+    model_name = st.selectbox("Modelo", ["gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano"])
+
+
+chat_model = ChatOpenAI(model=model_name, temperature=temperature)
+
+
+prompt_template = PromptTemplate(
+    input_variables=["mensaje", "historial"],
+    template="""Eres un asistente útil y amigable llamado ChatBot Pro. 
+ 
+Historial de conversación:
+{historial}
+ 
+Responde de manera clara y concisa a la siguiente pregunta: {mensaje}""",
+)
 
 
 # Inicializar el historial de mensajes
@@ -40,14 +58,25 @@ if pregunta:
     with st.chat_message("user"):
         st.markdown(pregunta)
 
+    chain = prompt_template | chat_model
+
     # Almacenamos el mensaje en la memoria de streamlit
     st.session_state.mensajes.append(HumanMessage(content=pregunta))
 
     # Generar respuesta usando el modelo de lenguaje
-    respuesta = chat_model.invoke(st.session_state.mensajes)
+    respuesta = chain.invoke(
+        {"mensaje": pregunta, "historial": st.session_state.mensajes}
+    )
 
     # Mostrar la respuesta en la interfaz
     with st.chat_message("assistant"):
         st.markdown(respuesta.content)
 
     st.session_state.mensajes.append(respuesta)
+
+
+if st.button("🗑️ Nueva conversación"):
+    # ¿Qué necesitas limpiar?
+    st.session_state.mensajes = []
+    # ¿Qué función de Streamlit refresca la página?
+    st.rerun()
