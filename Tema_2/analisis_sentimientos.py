@@ -1,8 +1,7 @@
-import dotenv
-from langchain_core.runnables import RunnableLambda
+from langchain_core.runnables import RunnableLambda, RunnableParallel
 from langchain_openai import ChatOpenAI
+import dotenv
 import json
-
 
 dotenv.load_dotenv()
 
@@ -31,6 +30,9 @@ def generate_summary(text):
     return response.content
 
 
+summary_branch = RunnableLambda(generate_summary)
+
+
 def analyze_sentiment(text):
     """Analiza el sentimiento y devuelve resultado estructurado"""
     prompt = f"""Analiza el sentimiento del siguiente texto.
@@ -46,6 +48,9 @@ def analyze_sentiment(text):
         return {"sentimiento": "neutro", "razon": "Error en análisis"}
 
 
+sentiment_branch = RunnableLambda(analyze_sentiment)
+
+
 def merge_results(data):
     """Combina los resultados de ambas ramas en un formato unificado"""
     return {
@@ -55,29 +60,13 @@ def merge_results(data):
     }
 
 
-def process_one(t):
-    resumen = generate_summary(t)  # Llamada 1 al LLM
-    sentimiento_data = analyze_sentiment(t)  # Llamada 2 al LLM
-    return merge_results({"resumen": resumen, "sentimiento_data": sentimiento_data})
+merger = RunnableLambda(merge_results)
 
 
-# Convertir en Runnable
-process = RunnableLambda(process_one)
+parallel_analysis = RunnableParallel(
+    {"resumen": summary_branch, "sentimiento_data": sentiment_branch}
+)
 
 
-# La cadena completa
-chain = preprocessor | process
-
-
-# Prueba con diferentes textos
-textos_prueba = [
-    "¡Me encanta este producto! Funciona perfectamente y llegó muy rápido.",
-    "El servicio al cliente fue terrible, nadie me ayudó con mi problema.",
-    "El clima está nublado hoy, probablemente llueva más tarde.",
-]
-
-for texto in textos_prueba:
-    resultado = chain.invoke(texto)
-    print(f"Texto: {texto}")
-    print(f"Resultado: {resultado}")
-    print("-" * 50)
+# Cadena completa
+chain = preprocessor | parallel_analysis | merger
