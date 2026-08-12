@@ -70,3 +70,16 @@ parallel_analysis = RunnableParallel(
 
 # Cadena completa
 chain = preprocessor | parallel_analysis | merger
+
+
+reviews_batch = [
+    "Excelente producto, muy satisfecho con la compra",
+    "Terrible calidad, no la recomiendo para nada",
+    "Esta bien, cumple su funcion basica pero nada especial",
+]
+
+
+result_batch = chain.batch(reviews_batch)
+
+
+print(result_batch)
