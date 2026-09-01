@@ -8,3 +8,5 @@ __pycache__/
 env/
 build/
 .env
+keys.json
+token.json
