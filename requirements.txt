@@ -15,4 +15,8 @@ streamlit>=1.35.0
 python-dotenv>=1.0.0
 
 # Librerías de procesamiento de documentos
+pypdf==6.16.2
 pypdf2==3.0.1
+
+# Librerías de procesamiento de texto
+beautifulsoup4==4.15.0
