@@ -1,6 +1,7 @@
 import dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_openai import ChatOpenAI
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 dotenv.load_dotenv()
 
@@ -8,14 +9,24 @@ dotenv.load_dotenv()
 loader = PyPDFLoader("C:\\Projects\\LangChain&LangGraph\\Tema_3\\quijote.pdf")
 pages = loader.load()
 
-# 2. Combinar todas las páginas en un texto unico
-full_text = ""
-for page in pages:
-    full_text += page.page_content + "\n"
+# Dividir el texto en chunks mas pequeños
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=200)
+
+chunks = text_splitter.split_documents(pages)
 
 # 3. Pasar el texto al LLM
 llm = ChatOpenAI(model="gpt-5.6-luna", temperature=0.2)
-response = llm.invoke(
-    f"Haz un resumen de los puntos mas importantes del siguiente documento: {full_text}"
+summaries = []
+
+for i, chunk in enumerate(chunks):
+    if i > 2:
+        break
+    response = llm.invoke(
+        f"Haz un resumen de los puntos mas importantes del siguiente texto: {chunk.page_content}"
+    )
+    summaries.append(response.content)
+
+final_summary = llm.invoke(
+    f"Combina y sintetiza estos resumenes en un resumen coherente y completo: {' '.join(summaries)} "
 )
-print(response)
+print(final_summary.content)
